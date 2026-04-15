@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Debt Calculator",
-  description: "Compare debt snowball and avalanche payoff strategies.",
+  title: "Free Debt Payoff Calculator (Snowball vs Avalanche)",
+  description:
+    "Calculate how fast you can pay off debt using snowball and avalanche methods. See payoff dates, interest savings, and monthly plans instantly.",
 };
 
 export default function RootLayout({

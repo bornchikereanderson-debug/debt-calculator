@@ -105,3 +105,9 @@ https://react.dev/link/hydration-mismatch
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width. (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+✓ Compiled in 275ms
+ GET / 200 in 407ms (next.js: 227ms, application-code: 180ms)
+ GET / 200 in 80ms (next.js: 7ms, application-code: 73ms)
+ GET / 200 in 25ms (next.js: 4ms, application-code: 20ms)
+✓ Compiled in 184ms
+ GET / 200 in 105ms (next.js: 73ms, application-code: 32ms)

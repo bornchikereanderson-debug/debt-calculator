@@ -45,10 +45,10 @@ const starterDebts: DebtInput[] = [
 ];
 
 const trackerFeatures = [
-  "Save multiple payoff plans",
-  "Track payoff progress over time",
-  "Get payment reminders",
-  "Set a target debt-free date",
+  "Save every payoff plan so you stop starting over",
+  "Track progress and see your balances drop month by month",
+  "Get reminders before payments slip through the cracks",
+  "Set a target debt-free date and know what it takes to hit it",
 ];
 
 export default function Home() {
@@ -157,15 +157,15 @@ export default function Home() {
             <div className="flex flex-col justify-between gap-8">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-fern/15 bg-fern/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-fern">
-                  Debt Calculator
+                  Debt payoff calculator
                 </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-black leading-[1.02] text-ink sm:text-5xl lg:text-6xl">
-                  Build a payoff plan you can trust.
+                  Free debt payoff calculator for snowball vs avalanche plans.
                 </h1>
                 <p className="mt-5 max-w-2xl text-base leading-7 text-ink/70 sm:text-lg">
-                  Compare snowball and avalanche strategies, understand the
-                  interest tradeoffs, and see your debt-free timeline before you
-                  commit another dollar.
+                  Use this snowball vs avalanche calculator to understand the
+                  interest tradeoffs, compare monthly payoff plans, and see your
+                  debt-free timeline before you commit another dollar.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -293,7 +293,9 @@ function DebtForm({
           <p className="text-xs font-black uppercase tracking-[0.16em] text-fern">
             Inputs
           </p>
-          <h2 className="mt-2 text-2xl font-black text-ink">Your debts</h2>
+          <h2 className="mt-2 text-2xl font-black text-ink">
+            Debt payoff calculator inputs
+          </h2>
           <p className="mt-1 text-sm leading-6 text-ink/60">
             Saved privately in this browser.
           </p>
@@ -489,7 +491,9 @@ function PayoffChart({
           <p className="text-xs font-black uppercase tracking-[0.16em] text-fern">
             Forecast
           </p>
-          <h2 className="mt-2 text-2xl font-black text-ink">Payoff over time</h2>
+          <h2 className="mt-2 text-2xl font-black text-ink">
+            Snowball vs avalanche calculator chart
+          </h2>
           <p className="mt-1 text-sm leading-6 text-ink/60">
             Remaining balance by month for each strategy.
           </p>
@@ -626,23 +630,33 @@ function StrategyDetails({ result }: { result: PayoffResult }) {
 function MonetizationSection({ onOpen }: { onOpen: () => void }) {
   return (
     <section className="overflow-hidden rounded-lg border border-ink/10 bg-ink text-white shadow-premium">
-      <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_24rem] lg:p-10">
+      <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_25rem] lg:p-10">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">
-            Full tracker
+            Take back control
           </p>
-          <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight sm:text-4xl">
-            Want to actually stick to your debt payoff plan?
+          <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">
+            Stop letting debt stress run the month.
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">
-            Track your progress, stay consistent, and become debt-free faster.
+            A calculator gives you the plan. The full tracker helps you follow it,
+            stay on top of payments, and see exactly how each month moves you
+            closer to debt freedom.
           </p>
-          <button type="button" onClick={onOpen} className="button-accent mt-7">
-            Unlock Full Tracker
-          </button>
+          <div className="mt-8 flex flex-col items-stretch gap-3 sm:inline-flex">
+            <button type="button" onClick={onOpen} className="button-accent text-base sm:text-lg">
+              Start My Debt Freedom Plan
+            </button>
+            <p className="text-center text-sm font-bold text-white/62">
+              Free to try. No credit card required.
+            </p>
+          </div>
         </div>
 
-        <div className="rounded-lg border border-white/10 bg-white/10 p-4">
+        <div className="rounded-lg border border-white/10 bg-white/10 p-4 shadow-card">
+          <p className="mb-4 text-sm font-black uppercase tracking-[0.14em] text-white/50">
+            What changes when you track it
+          </p>
           <div className="grid gap-3">
             {trackerFeatures.map((feature) => (
               <div
