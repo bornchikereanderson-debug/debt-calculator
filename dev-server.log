@@ -1,0 +1,107 @@
+
+> debt-calculator@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.52.0.166:3000
+✓ Ready in 894ms
+
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 884ms (next.js: 319ms, application-code: 565ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 238ms (next.js: 24ms, application-code: 215ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+✓ Compiled in 1459ms
+ GET / 200 in 1805ms (next.js: 1391ms, application-code: 414ms)
+ GET / 200 in 301ms (next.js: 106ms, application-code: 195ms)
+ GET / 200 in 132ms (next.js: 12ms, application-code: 119ms)
+ GET / 200 in 132ms (next.js: 65ms, application-code: 67ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+ GET / 200 in 322ms (next.js: 93ms, application-code: 229ms)
+ GET / 200 in 297ms (next.js: 73ms, application-code: 224ms)
+ GET / 200 in 192ms (next.js: 11ms, application-code: 181ms)
+[browser] Uncaught Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectErrorBoundary router={{...}}>
+      <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+        <SegmentViewNode type="page" pagePath="page.tsx">
+          <SegmentTrieNode>
+          <ClientPageRoot Component={function Home} serverProvidedParams={{...}}>
+            <Home params={Promise} searchParams={Promise}>
+              <main className="min-h-scre...">
+                <div className="mx-auto fl...">
+                  <header className="overflow-h...">
+                    <div className="grid gap-8...">
+                      <div>
+                      <div className="rounded-lg...">
+                        <p>
+                        <p>
+                        <div className="mt-8 grid ...">
+                          <HighlightMetric>
+                          <HighlightMetric label="Projected ..." value="Jul 2029">
+                            <div className="rounded-md...">
+                              <p>
+                              <p className="mt-1 text-lg font-black text-white">
++                               Jul 2029
+-                               May 2028
+                          ...
+                  ...
+        ...
+      ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at throwOnHydrationMismatch (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:3318:56)
+    at prepareToHydrateHostInstance (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:3372:23)
+    at completeWork (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6922:60)
+    at runWithFiberInDEV (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at completeUnitOfWork (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9622:23)
+    at performUnitOfWork (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9557:28)
+    at workLoopConcurrentByScheduler (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9551:58)
+    at renderRootConcurrent (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9534:71)
+    at performWorkOnRoot (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:2647:64)
+    at p (<anonymous>)
+    at HighlightMetric (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/_0_cy.-2._.js:1628:215)
+    at Home (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/_0_cy.-2._.js:425:251)
+    at ClientPageRoot (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_0tt2wve._.js:4461:50)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width. (file://C:/Users/banderson/Documents/New project 2/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
