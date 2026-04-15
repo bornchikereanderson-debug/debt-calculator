@@ -27,6 +27,19 @@ type SavedState = {
   extraPayment: number;
 };
 
+type CheckoutPlanId = "monthly" | "lifetime";
+
+type CheckoutStep = "pricing" | "checkout" | "success" | "cancel";
+
+type CheckoutPlan = {
+  id: CheckoutPlanId;
+  name: string;
+  price: string;
+  cadence: string;
+  description: string;
+  stripeLookupKey: string;
+};
+
 const starterDebts: DebtInput[] = [
   {
     id: "card-1",
@@ -44,11 +57,71 @@ const starterDebts: DebtInput[] = [
   },
 ];
 
-const trackerFeatures = [
-  "Save every payoff plan so you stop starting over",
-  "Track progress and see your balances drop month by month",
-  "Get reminders before payments slip through the cracks",
-  "Set a target debt-free date and know what it takes to hit it",
+const freeFeatures = [
+  "One debt payoff calculator",
+  "Snowball and avalanche comparison",
+  "Instant payoff dates and interest estimate",
+];
+
+const premiumFeatures = [
+  "Save plans",
+  "Track payoff progress",
+  "Payment reminders",
+  "Goal date",
+  "Printable report",
+  "Multiple scenarios",
+];
+
+const premiumPreviews = [
+  {
+    title: "Save my plan",
+    description:
+      "Keep this payoff strategy ready so you can return without rebuilding every debt.",
+    preview: "Plan saved as: Avalanche - 18 month target",
+  },
+  {
+    title: "Progress tracker",
+    description:
+      "Log payments and watch your balances move down against the plan.",
+    preview: "23% paid off - $2,760 principal cleared",
+  },
+  {
+    title: "Reminders",
+    description:
+      "Stay ahead of due dates with gentle payment prompts before momentum slips.",
+    preview: "Next reminder: 3 days before card payment",
+  },
+  {
+    title: "Goal date planner",
+    description:
+      "Choose a debt-free date and see the monthly payment needed to reach it.",
+    preview: "Target: Debt-free by December 2027",
+  },
+  {
+    title: "Printable payoff report",
+    description:
+      "Export a clean plan summary for your budget binder, partner, or advisor.",
+    preview: "Includes payoff order, interest, dates, and monthly plan",
+  },
+];
+
+const checkoutPlans: CheckoutPlan[] = [
+  {
+    id: "monthly",
+    name: "Monthly",
+    price: "$7",
+    cadence: "/month",
+    description: "Best if you want ongoing accountability while you pay down debt.",
+    stripeLookupKey: "debt_tracker_monthly",
+  },
+  {
+    id: "lifetime",
+    name: "Lifetime early access",
+    price: "$49",
+    cadence: "one-time",
+    description: "Best value for early users who want permanent access.",
+    stripeLookupKey: "debt_tracker_lifetime_early_access",
+  },
 ];
 
 export default function Home() {
@@ -225,11 +298,12 @@ export default function Home() {
           <StrategyDetails result={results.avalanche} />
         </section>
 
+        <PremiumPreviews onOpen={() => setIsTrackerModalOpen(true)} />
         <MonetizationSection onOpen={() => setIsTrackerModalOpen(true)} />
       </div>
 
       {isTrackerModalOpen ? (
-        <TrackerModal onClose={() => setIsTrackerModalOpen(false)} />
+        <PricingModal onClose={() => setIsTrackerModalOpen(false)} />
       ) : null}
     </main>
   );
@@ -627,61 +701,232 @@ function StrategyDetails({ result }: { result: PayoffResult }) {
   );
 }
 
+function PremiumPreviews({ onOpen }: { onOpen: () => void }) {
+  return (
+    <section className="rounded-lg border border-ink/10 bg-white/95 p-4 shadow-card backdrop-blur sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-fern">
+            Premium previews
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-ink">
+            Turn your calculation into a plan you can follow.
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-ink/60">
+            Preview the tools that help you stay consistent after the numbers are
+            calculated.
+          </p>
+        </div>
+        <button type="button" onClick={onOpen} className="button-secondary">
+          View Premium
+        </button>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {premiumPreviews.map((preview) => (
+          <LockedPreviewCard key={preview.title} preview={preview} onOpen={onOpen} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function LockedPreviewCard({
+  preview,
+  onOpen,
+}: {
+  preview: (typeof premiumPreviews)[number];
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group min-h-56 rounded-lg border border-ink/10 bg-paper p-4 text-left shadow-card transition hover:-translate-y-0.5 hover:border-fern/30 hover:bg-white"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-lg font-black leading-tight text-ink">{preview.title}</h3>
+        <span className="rounded-full bg-ink px-2.5 py-1 text-[0.65rem] font-black uppercase tracking-[0.12em] text-gold">
+          Premium
+        </span>
+      </div>
+      <p className="mt-3 text-sm font-bold leading-6 text-ink/62">
+        {preview.description}
+      </p>
+      <div className="relative mt-4 overflow-hidden rounded-md border border-ink/10 bg-white p-3">
+        <div className="blur-[2px] transition group-hover:blur-[1px]">
+          <div className="mb-2 h-2 w-2/3 rounded-full bg-fern/25" />
+          <div className="mb-3 h-2 w-1/2 rounded-full bg-gold/40" />
+          <p className="text-xs font-black leading-5 text-ink/70">{preview.preview}</p>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center bg-white/45">
+          <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-xs font-black text-ink shadow-card">
+            Unlock preview
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 function MonetizationSection({ onOpen }: { onOpen: () => void }) {
   return (
     <section className="overflow-hidden rounded-lg border border-ink/10 bg-ink text-white shadow-premium">
-      <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_25rem] lg:p-10">
+      <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:p-10">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">
-            Take back control
+            Debt Payoff Premium
           </p>
           <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">
-            Stop letting debt stress run the month.
+            Stop rebuilding the same plan while debt stress keeps winning.
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">
-            A calculator gives you the plan. The full tracker helps you follow it,
-            stay on top of payments, and see exactly how each month moves you
-            closer to debt freedom.
+            The free calculator shows your path. Premium helps you keep control
+            after today with saved scenarios, reminders, progress tracking, and a
+            clear debt-free target you can actually follow.
           </p>
-          <div className="mt-8 flex flex-col items-stretch gap-3 sm:inline-flex">
+
+          <div className="mt-7 grid gap-3 sm:grid-cols-2">
+            <PriceCard label="Monthly" price="$7" detail="/month" />
+            <PriceCard
+              label="Early access"
+              price="$49"
+              detail="lifetime"
+              featured
+            />
+          </div>
+
+          <div className="mt-7 flex flex-col items-stretch gap-3 sm:inline-flex">
             <button type="button" onClick={onOpen} className="button-accent text-base sm:text-lg">
-              Start My Debt Freedom Plan
+              Get Premium Access
             </button>
-            <p className="text-center text-sm font-bold text-white/62">
-              Free to try. No credit card required.
+            <p className="text-center text-sm font-bold text-white/65">
+              Start free. Upgrade when you&apos;re ready.
             </p>
           </div>
         </div>
 
-        <div className="rounded-lg border border-white/10 bg-white/10 p-4 shadow-card">
-          <p className="mb-4 text-sm font-black uppercase tracking-[0.14em] text-white/50">
-            What changes when you track it
-          </p>
-          <div className="grid gap-3">
-            {trackerFeatures.map((feature) => (
-              <div
-                key={feature}
-                className="flex items-center gap-3 rounded-md border border-white/10 bg-white/10 px-3 py-3"
-              >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold text-sm font-black text-ink">
-                  +
-                </span>
-                <span className="text-sm font-bold text-white/85">{feature}</span>
-              </div>
-            ))}
-          </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <PlanCard
+            title="Free"
+            subtitle="Calculator only"
+            features={freeFeatures}
+          />
+          <PlanCard
+            title="Premium"
+            subtitle="Complete payoff tracker"
+            features={premiumFeatures}
+            featured
+          />
         </div>
       </div>
     </section>
   );
 }
 
-function TrackerModal({ onClose }: { onClose: () => void }) {
-  const [submitted, setSubmitted] = useState(false);
+function PlanCard({
+  title,
+  subtitle,
+  features,
+  featured = false,
+}: {
+  title: string;
+  subtitle: string;
+  features: string[];
+  featured?: boolean;
+}) {
+  return (
+    <article
+      className={
+        featured
+          ? "rounded-lg border border-gold/40 bg-white p-4 text-ink shadow-card"
+          : "rounded-lg border border-white/10 bg-white/10 p-4 text-white shadow-card"
+      }
+    >
+      <p
+        className={
+          featured
+            ? "text-xs font-black uppercase tracking-[0.16em] text-fern"
+            : "text-xs font-black uppercase tracking-[0.16em] text-white/50"
+        }
+      >
+        {title}
+      </p>
+      <h3 className="mt-2 text-xl font-black">{subtitle}</h3>
+      <ul className="mt-4 grid gap-3">
+        {features.map((feature) => (
+          <li key={feature} className="flex gap-3 text-sm font-bold leading-5">
+            <span
+              className={
+                featured
+                  ? "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-xs font-black text-ink"
+                  : "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/15 text-xs font-black text-white"
+              }
+            >
+              +
+            </span>
+            <span className={featured ? "text-ink/80" : "text-white/80"}>
+              {feature}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </article>
+  );
+}
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+function PriceCard({
+  label,
+  price,
+  detail,
+  featured = false,
+}: {
+  label: string;
+  price: string;
+  detail: string;
+  featured?: boolean;
+}) {
+  return (
+    <div
+      className={
+        featured
+          ? "rounded-lg border border-gold/50 bg-gold p-4 text-ink shadow-card"
+          : "rounded-lg border border-white/10 bg-white/10 p-4 text-white"
+      }
+    >
+      <p
+        className={
+          featured
+            ? "text-xs font-black uppercase tracking-[0.14em] text-ink/55"
+            : "text-xs font-black uppercase tracking-[0.14em] text-white/50"
+        }
+      >
+        {label}
+      </p>
+      <p className="mt-2 flex items-end gap-1">
+        <span className="text-3xl font-black leading-none">{price}</span>
+        <span className="text-sm font-black opacity-70">{detail}</span>
+      </p>
+    </div>
+  );
+}
+
+function PricingModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState<CheckoutStep>("pricing");
+  const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan>(checkoutPlans[1]);
+  const [lead, setLead] = useState({
+    name: "",
+    email: "",
+  });
+
+  function handleCheckoutSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+    setStep("success");
+  }
+
+  function choosePlan(plan: CheckoutPlan) {
+    setSelectedPlan(plan);
+    setStep("checkout");
   }
 
   return (
@@ -691,14 +936,14 @@ function TrackerModal({ onClose }: { onClose: () => void }) {
       className="fixed inset-0 z-50 grid place-items-center bg-ink/60 px-4 py-6 backdrop-blur-sm"
       role="dialog"
     >
-      <div className="w-full max-w-md rounded-lg border border-white/70 bg-white p-5 shadow-premium sm:p-6">
+      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-white/70 bg-white p-5 shadow-premium sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-fern">
-              Early access
+              Stripe checkout preview
             </p>
-            <h2 id="tracker-modal-title" className="mt-2 text-2xl font-black text-ink">
-              Unlock Full Tracker
+            <h2 id="tracker-modal-title" className="mt-2 text-2xl font-black text-ink sm:text-3xl">
+              Get Premium Access
             </h2>
           </div>
           <button
@@ -711,38 +956,179 @@ function TrackerModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {submitted ? (
-          <div className="mt-6 rounded-lg border border-fern/20 bg-mint/70 p-4">
-            <p className="text-lg font-black text-ink">You are on the list.</p>
-            <p className="mt-2 text-sm leading-6 text-ink/65">
-              This is UI-only for now, so no information was sent to a backend.
-            </p>
-            <button type="button" onClick={onClose} className="button-primary mt-5 w-full">
-              Done
-            </button>
-          </div>
-        ) : (
-          <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
-            <Field label="Name">
-              <input className="input" name="name" placeholder="Your name" required />
-            </Field>
-            <Field label="Email">
-              <input
-                className="input"
-                name="email"
-                placeholder="you@example.com"
-                required
-                type="email"
+        {step === "pricing" ? (
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {checkoutPlans.map((plan) => (
+              <CheckoutPlanCard
+                key={plan.id}
+                plan={plan}
+                featured={plan.id === "lifetime"}
+                onChoose={() => choosePlan(plan)}
               />
-            </Field>
-            <button type="submit" className="button-primary mt-2 w-full">
-              Request access
-            </button>
+            ))}
+          </div>
+        ) : null}
+
+        {step === "checkout" ? (
+          <form className="mt-6 grid gap-5" onSubmit={handleCheckoutSubmit}>
+            <div className="rounded-lg border border-ink/10 bg-paper p-4">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-ink/45">
+                Selected plan
+              </p>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-2xl font-black text-ink">{selectedPlan.name}</p>
+                  <p className="mt-1 text-sm font-bold text-ink/60">
+                    Stripe lookup key: {selectedPlan.stripeLookupKey}
+                  </p>
+                </div>
+                <p className="text-3xl font-black text-ink">
+                  {selectedPlan.price}
+                  <span className="ml-1 text-sm text-ink/55">{selectedPlan.cadence}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Name">
+                <input
+                  className="input"
+                  name="name"
+                  onChange={(event) =>
+                    setLead((current) => ({ ...current, name: event.target.value }))
+                  }
+                  placeholder="Your name"
+                  required
+                  value={lead.name}
+                />
+              </Field>
+              <Field label="Email">
+                <input
+                  className="input"
+                  name="email"
+                  onChange={(event) =>
+                    setLead((current) => ({ ...current, email: event.target.value }))
+                  }
+                  placeholder="you@example.com"
+                  required
+                  type="email"
+                  value={lead.email}
+                />
+              </Field>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+              <button type="submit" className="button-primary w-full">
+                Continue to Checkout
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep("cancel")}
+                className="button-secondary"
+              >
+                Cancel checkout
+              </button>
+            </div>
             <p className="text-center text-xs leading-5 text-ink/50">
-              No backend is connected yet. This only previews the signup flow.
+              Placeholder only. Later this button can create a Stripe Checkout
+              Session and redirect to Stripe.
             </p>
           </form>
-        )}
+        ) : null}
+
+        {step === "success" ? (
+          <CheckoutStatus
+            title="Checkout success placeholder"
+            body="In the Stripe version, successful payments will return here before unlocking premium tracking features."
+            actionLabel="Back to calculator"
+            onAction={onClose}
+          />
+        ) : null}
+
+        {step === "cancel" ? (
+          <CheckoutStatus
+            title="Checkout canceled placeholder"
+            body="In the Stripe version, canceled checkouts will return here so users can review plans or keep using the free calculator."
+            actionLabel="Review plans"
+            onAction={() => setStep("pricing")}
+            secondaryLabel="Back to calculator"
+            onSecondary={onClose}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function CheckoutPlanCard({
+  plan,
+  featured = false,
+  onChoose,
+}: {
+  plan: CheckoutPlan;
+  featured?: boolean;
+  onChoose: () => void;
+}) {
+  return (
+    <article
+      className={
+        featured
+          ? "rounded-lg border border-gold/50 bg-gold/15 p-4 shadow-card"
+          : "rounded-lg border border-ink/10 bg-paper p-4"
+      }
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-fern">
+            {featured ? "Best value" : "Flexible"}
+          </p>
+          <h3 className="mt-2 text-xl font-black text-ink">{plan.name}</h3>
+        </div>
+        <p className="text-right">
+          <span className="block text-3xl font-black leading-none text-ink">
+            {plan.price}
+          </span>
+          <span className="text-sm font-black text-ink/55">{plan.cadence}</span>
+        </p>
+      </div>
+      <p className="mt-4 text-sm font-bold leading-6 text-ink/65">
+        {plan.description}
+      </p>
+      <button type="button" onClick={onChoose} className="button-primary mt-5 w-full">
+        Choose {plan.name}
+      </button>
+    </article>
+  );
+}
+
+function CheckoutStatus({
+  title,
+  body,
+  actionLabel,
+  onAction,
+  secondaryLabel,
+  onSecondary,
+}: {
+  title: string;
+  body: string;
+  actionLabel: string;
+  onAction: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
+}) {
+  return (
+    <div className="mt-6 rounded-lg border border-fern/20 bg-mint/70 p-5">
+      <p className="text-2xl font-black text-ink">{title}</p>
+      <p className="mt-2 text-sm font-bold leading-6 text-ink/65">{body}</p>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <button type="button" onClick={onAction} className="button-primary w-full">
+          {actionLabel}
+        </button>
+        {secondaryLabel && onSecondary ? (
+          <button type="button" onClick={onSecondary} className="button-secondary">
+            {secondaryLabel}
+          </button>
+        ) : null}
       </div>
     </div>
   );
