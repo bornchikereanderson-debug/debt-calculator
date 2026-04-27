@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAppUrl, getCheckoutPlan, getStripePriceId } from "@/lib/stripe-plans";
+import { getAppUrl, getCheckoutPlan } from "@/lib/stripe-plans";
 import { getStripe } from "@/lib/stripe-server";
 
 export const runtime = "nodejs";
@@ -29,13 +29,26 @@ export async function POST(request: Request) {
       );
     }
 
-    const priceId = getStripePriceId(plan.id);
+    const priceId =
+      plan.id === "monthly"
+        ? process.env.STRIPE_PRICE_MONTHLY
+        : process.env.STRIPE_PRICE_LIFETIME;
+
     if (!priceId) {
-      return NextResponse.json(
-        { error: `${plan.priceEnvKey} is not configured.` },
-        { status: 500 },
+      throw new Error(
+        plan.id === "monthly"
+          ? "Missing STRIPE_PRICE_MONTHLY environment variable."
+          : "Missing STRIPE_PRICE_LIFETIME environment variable.",
       );
     }
+
+    console.info("Creating Stripe Checkout Session", {
+      planId: plan.id,
+      mode: plan.mode,
+      hasCustomerEmail: Boolean(email),
+      hasCustomerName: Boolean(name),
+      priceId,
+    });
 
     const appUrl = getAppUrl();
     const stripe = getStripe();
@@ -86,7 +99,12 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Stripe checkout session error", error);
     return NextResponse.json(
-      { error: "Unable to create checkout session." },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to create checkout session.",
+      },
       { status: 500 },
     );
   }
