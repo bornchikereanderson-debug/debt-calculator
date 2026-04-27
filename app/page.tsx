@@ -19,6 +19,11 @@ import {
   type DebtInput,
   type PayoffResult,
 } from "@/lib/debt-calculator";
+import { PREMIUM_STORAGE_KEY, type PremiumAccess } from "@/lib/premium";
+import {
+  checkoutPlans,
+  type CheckoutPlan,
+} from "@/lib/stripe-plans";
 
 const STORAGE_KEY = "debt-calculator:v1";
 
@@ -27,18 +32,7 @@ type SavedState = {
   extraPayment: number;
 };
 
-type CheckoutPlanId = "monthly" | "lifetime";
-
-type CheckoutStep = "pricing" | "checkout" | "success" | "cancel";
-
-type CheckoutPlan = {
-  id: CheckoutPlanId;
-  name: string;
-  price: string;
-  cadence: string;
-  description: string;
-  stripeLookupKey: string;
-};
+type CheckoutStep = "pricing" | "checkout";
 
 const starterDebts: DebtInput[] = [
   {
@@ -105,27 +99,9 @@ const premiumPreviews = [
   },
 ];
 
-const checkoutPlans: CheckoutPlan[] = [
-  {
-    id: "monthly",
-    name: "Monthly",
-    price: "$7",
-    cadence: "/month",
-    description: "Best if you want ongoing accountability while you pay down debt.",
-    stripeLookupKey: "debt_tracker_monthly",
-  },
-  {
-    id: "lifetime",
-    name: "Lifetime early access",
-    price: "$49",
-    cadence: "one-time",
-    description: "Best value for early users who want permanent access.",
-    stripeLookupKey: "debt_tracker_lifetime_early_access",
-  },
-];
-
 export default function Home() {
   const [savedState] = useState<SavedState>(() => getSavedState());
+  const [premiumAccess] = useState<PremiumAccess | null>(() => getPremiumAccess());
   const [debts, setDebts] = useState<DebtInput[]>(savedState.debts);
   const [extraPayment, setExtraPayment] = useState(savedState.extraPayment);
   const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
@@ -298,8 +274,14 @@ export default function Home() {
           <StrategyDetails result={results.avalanche} />
         </section>
 
-        <PremiumPreviews onOpen={() => setIsTrackerModalOpen(true)} />
-        <MonetizationSection onOpen={() => setIsTrackerModalOpen(true)} />
+        <PremiumPreviews
+          isUnlocked={Boolean(premiumAccess)}
+          onOpen={() => setIsTrackerModalOpen(true)}
+        />
+        <MonetizationSection
+          isUnlocked={Boolean(premiumAccess)}
+          onOpen={() => setIsTrackerModalOpen(true)}
+        />
       </div>
 
       {isTrackerModalOpen ? (
@@ -341,6 +323,25 @@ function getSavedState(): SavedState {
     debts: starterDebts,
     extraPayment: 250,
   };
+}
+
+function getPremiumAccess(): PremiumAccess | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const saved = window.localStorage.getItem(PREMIUM_STORAGE_KEY);
+  if (!saved) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(saved) as PremiumAccess;
+    return parsed.unlocked ? parsed : null;
+  } catch {
+    window.localStorage.removeItem(PREMIUM_STORAGE_KEY);
+    return null;
+  }
 }
 
 function DebtForm({
@@ -701,7 +702,13 @@ function StrategyDetails({ result }: { result: PayoffResult }) {
   );
 }
 
-function PremiumPreviews({ onOpen }: { onOpen: () => void }) {
+function PremiumPreviews({
+  isUnlocked,
+  onOpen,
+}: {
+  isUnlocked: boolean;
+  onOpen: () => void;
+}) {
   return (
     <section className="rounded-lg border border-ink/10 bg-white/95 p-4 shadow-card backdrop-blur sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -717,14 +724,25 @@ function PremiumPreviews({ onOpen }: { onOpen: () => void }) {
             calculated.
           </p>
         </div>
-        <button type="button" onClick={onOpen} className="button-secondary">
-          View Premium
-        </button>
+        {isUnlocked ? (
+          <span className="rounded-full border border-fern/20 bg-mint px-3 py-1.5 text-sm font-black text-fern">
+            Premium unlocked
+          </span>
+        ) : (
+          <button type="button" onClick={onOpen} className="button-secondary">
+            View Premium
+          </button>
+        )}
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {premiumPreviews.map((preview) => (
-          <LockedPreviewCard key={preview.title} preview={preview} onOpen={onOpen} />
+          <LockedPreviewCard
+            key={preview.title}
+            isUnlocked={isUnlocked}
+            preview={preview}
+            onOpen={onOpen}
+          />
         ))}
       </div>
     </section>
@@ -732,46 +750,76 @@ function PremiumPreviews({ onOpen }: { onOpen: () => void }) {
 }
 
 function LockedPreviewCard({
+  isUnlocked,
   preview,
   onOpen,
 }: {
+  isUnlocked: boolean;
   preview: (typeof premiumPreviews)[number];
   onOpen: () => void;
 }) {
+  const content = (
+    <>
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-lg font-black leading-tight text-ink">{preview.title}</h3>
+        <span
+          className={
+            isUnlocked
+              ? "rounded-full bg-mint px-2.5 py-1 text-[0.65rem] font-black uppercase tracking-[0.12em] text-fern"
+              : "rounded-full bg-ink px-2.5 py-1 text-[0.65rem] font-black uppercase tracking-[0.12em] text-gold"
+          }
+        >
+          {isUnlocked ? "Unlocked" : "Premium"}
+        </span>
+      </div>
+      <p className="mt-3 text-sm font-bold leading-6 text-ink/65">
+        {preview.description}
+      </p>
+      <div className="relative mt-4 overflow-hidden rounded-md border border-ink/10 bg-white p-3">
+        <div className={isUnlocked ? "" : "blur-[2px] transition group-hover:blur-[1px]"}>
+          <div className="mb-2 h-2 w-2/3 rounded-full bg-fern/25" />
+          <div className="mb-3 h-2 w-1/2 rounded-full bg-gold/40" />
+          <p className="text-xs font-black leading-5 text-ink/70">{preview.preview}</p>
+        </div>
+        {!isUnlocked ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/45">
+            <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-xs font-black text-ink shadow-card">
+              Unlock preview
+            </span>
+          </div>
+        ) : null}
+      </div>
+    </>
+  );
+
+  if (isUnlocked) {
+    return (
+      <article className="min-h-56 rounded-lg border border-fern/20 bg-mint/40 p-4 text-left shadow-card">
+        {content}
+      </article>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={onOpen}
       className="group min-h-56 rounded-lg border border-ink/10 bg-paper p-4 text-left shadow-card transition hover:-translate-y-0.5 hover:border-fern/30 hover:bg-white"
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="text-lg font-black leading-tight text-ink">{preview.title}</h3>
-        <span className="rounded-full bg-ink px-2.5 py-1 text-[0.65rem] font-black uppercase tracking-[0.12em] text-gold">
-          Premium
-        </span>
-      </div>
-      <p className="mt-3 text-sm font-bold leading-6 text-ink/62">
-        {preview.description}
-      </p>
-      <div className="relative mt-4 overflow-hidden rounded-md border border-ink/10 bg-white p-3">
-        <div className="blur-[2px] transition group-hover:blur-[1px]">
-          <div className="mb-2 h-2 w-2/3 rounded-full bg-fern/25" />
-          <div className="mb-3 h-2 w-1/2 rounded-full bg-gold/40" />
-          <p className="text-xs font-black leading-5 text-ink/70">{preview.preview}</p>
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center bg-white/45">
-          <span className="rounded-full border border-ink/10 bg-white px-3 py-1 text-xs font-black text-ink shadow-card">
-            Unlock preview
-          </span>
-        </div>
-      </div>
+      {content}
     </button>
   );
 }
 
-function MonetizationSection({ onOpen }: { onOpen: () => void }) {
+function MonetizationSection({
+  isUnlocked,
+  onOpen,
+}: {
+  isUnlocked: boolean;
+  onOpen: () => void;
+}) {
   return (
-    <section className="overflow-hidden rounded-lg border border-ink/10 bg-ink text-white shadow-premium">
+    <section id="pricing" className="overflow-hidden rounded-lg border border-ink/10 bg-ink text-white shadow-premium">
       <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:p-10">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">
@@ -797,9 +845,18 @@ function MonetizationSection({ onOpen }: { onOpen: () => void }) {
           </div>
 
           <div className="mt-7 flex flex-col items-stretch gap-3 sm:inline-flex">
-            <button type="button" onClick={onOpen} className="button-accent text-base sm:text-lg">
-              Get Premium Access
-            </button>
+            {isUnlocked ? (
+              <div className="rounded-lg border border-gold/30 bg-white/10 p-4">
+                <p className="text-lg font-black text-white">Premium is unlocked.</p>
+                <p className="mt-1 text-sm font-bold text-white/65">
+                  Your browser now has access to the premium previews.
+                </p>
+              </div>
+            ) : (
+              <button type="button" onClick={onOpen} className="button-accent text-base sm:text-lg">
+                Get Premium Access
+              </button>
+            )}
             <p className="text-center text-sm font-bold text-white/65">
               Start free. Upgrade when you&apos;re ready.
             </p>
@@ -914,18 +971,53 @@ function PriceCard({
 function PricingModal({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState<CheckoutStep>("pricing");
   const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan>(checkoutPlans[1]);
+  const [checkoutError, setCheckoutError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [lead, setLead] = useState({
     name: "",
     email: "",
   });
 
-  function handleCheckoutSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleCheckoutSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStep("success");
+    setCheckoutError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          name: lead.name,
+          email: lead.email,
+        }),
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      const data = contentType.includes("application/json")
+        ? ((await response.json()) as { url?: string; error?: string })
+        : {
+            error: await response.text(),
+          };
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error ?? "Unable to start checkout.");
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      setCheckoutError(
+        error instanceof Error ? error.message : "Unable to start checkout.",
+      );
+      setIsSubmitting(false);
+    }
   }
 
   function choosePlan(plan: CheckoutPlan) {
     setSelectedPlan(plan);
+    setCheckoutError("");
     setStep("checkout");
   }
 
@@ -940,7 +1032,7 @@ function PricingModal({ onClose }: { onClose: () => void }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-fern">
-              Stripe checkout preview
+              Secure Stripe checkout
             </p>
             <h2 id="tracker-modal-title" className="mt-2 text-2xl font-black text-ink sm:text-3xl">
               Get Premium Access
@@ -979,7 +1071,7 @@ function PricingModal({ onClose }: { onClose: () => void }) {
                 <div>
                   <p className="text-2xl font-black text-ink">{selectedPlan.name}</p>
                   <p className="mt-1 text-sm font-bold text-ink/60">
-                    Stripe lookup key: {selectedPlan.stripeLookupKey}
+                    You will be redirected to Stripe-hosted Checkout.
                   </p>
                 </div>
                 <p className="text-3xl font-black text-ink">
@@ -1019,41 +1111,27 @@ function PricingModal({ onClose }: { onClose: () => void }) {
 
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
               <button type="submit" className="button-primary w-full">
-                Continue to Checkout
+                {isSubmitting ? "Starting Checkout..." : "Continue to Checkout"}
               </button>
               <button
                 type="button"
-                onClick={() => setStep("cancel")}
+                onClick={() => setStep("pricing")}
                 className="button-secondary"
+                disabled={isSubmitting}
               >
-                Cancel checkout
+                Change plan
               </button>
             </div>
+            {checkoutError ? (
+              <p className="rounded-md border border-coral/30 bg-coral/10 p-3 text-sm font-bold text-ink">
+                {checkoutError}
+              </p>
+            ) : null}
             <p className="text-center text-xs leading-5 text-ink/50">
-              Placeholder only. Later this button can create a Stripe Checkout
-              Session and redirect to Stripe.
+              Payments are processed by Stripe. No payment details are entered
+              or stored in this app.
             </p>
           </form>
-        ) : null}
-
-        {step === "success" ? (
-          <CheckoutStatus
-            title="Checkout success placeholder"
-            body="In the Stripe version, successful payments will return here before unlocking premium tracking features."
-            actionLabel="Back to calculator"
-            onAction={onClose}
-          />
-        ) : null}
-
-        {step === "cancel" ? (
-          <CheckoutStatus
-            title="Checkout canceled placeholder"
-            body="In the Stripe version, canceled checkouts will return here so users can review plans or keep using the free calculator."
-            actionLabel="Review plans"
-            onAction={() => setStep("pricing")}
-            secondaryLabel="Back to calculator"
-            onSecondary={onClose}
-          />
         ) : null}
       </div>
     </div>
@@ -1098,39 +1176,6 @@ function CheckoutPlanCard({
         Choose {plan.name}
       </button>
     </article>
-  );
-}
-
-function CheckoutStatus({
-  title,
-  body,
-  actionLabel,
-  onAction,
-  secondaryLabel,
-  onSecondary,
-}: {
-  title: string;
-  body: string;
-  actionLabel: string;
-  onAction: () => void;
-  secondaryLabel?: string;
-  onSecondary?: () => void;
-}) {
-  return (
-    <div className="mt-6 rounded-lg border border-fern/20 bg-mint/70 p-5">
-      <p className="text-2xl font-black text-ink">{title}</p>
-      <p className="mt-2 text-sm font-bold leading-6 text-ink/65">{body}</p>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <button type="button" onClick={onAction} className="button-primary w-full">
-          {actionLabel}
-        </button>
-        {secondaryLabel && onSecondary ? (
-          <button type="button" onClick={onSecondary} className="button-secondary">
-            {secondaryLabel}
-          </button>
-        ) : null}
-      </div>
-    </div>
   );
 }
 

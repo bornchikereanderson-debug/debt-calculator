@@ -112,3 +112,11 @@ https://react.dev/link/hydration-mismatch
 ✓ Compiled in 184ms
  GET / 200 in 105ms (next.js: 73ms, application-code: 32ms)
 ✓ Compiled in 163ms
+✓ Compiled in 141ms
+ GET / 200 in 158ms (next.js: 89ms, application-code: 69ms)
+✓ Compiled in 148ms
+ GET / 200 in 123ms (next.js: 66ms, application-code: 57ms)
+✓ Compiled in 147ms
+ GET / 200 in 66ms (next.js: 33ms, application-code: 34ms)
+✓ Compiled in 105ms
+ GET / 200 in 82ms (next.js: 42ms, application-code: 39ms)
